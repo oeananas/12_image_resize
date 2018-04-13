@@ -27,7 +27,7 @@ def get_new_size(original_img, width=None, height=None, scale=None):
 
 
 def resize_image(original_img, new_size):
-        return original_img.resize(new_size, Image.ANTIALIAS)
+    return original_img.resize(new_size, Image.ANTIALIAS)
 
 
 def rename_and_save_image(new_size, path_to_original, path_to_result=None):
@@ -51,9 +51,9 @@ def rename_and_save_image(new_size, path_to_original, path_to_result=None):
         ))
 
 
-def get_parse_arguments():
+def get_parsed_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--img', type=str, help='path to original image')
+    parser.add_argument('img', type=str, help='path to original image')
     parser.add_argument('-W', type=int, help='resize width')
     parser.add_argument('-H', type=int, help='resize height')
     parser.add_argument('-S', type=int, help='resize scale')
@@ -62,7 +62,7 @@ def get_parse_arguments():
 
 
 if __name__ == '__main__':
-    args = get_parse_arguments()
+    args = get_parsed_arguments()
     original_path = args['img']
     width = args['W']
     height = args['H']
@@ -72,18 +72,17 @@ if __name__ == '__main__':
         exit('You did not enter file path as parameter')
     try:
         image = load_image(original_path)
-    except FileNotFoundError:
-        exit('File not found')
+    except(FileNotFoundError, PermissionError):
+        exit('File not found, incorrect path')
     new_size = get_new_size(image, width=width, height=height, scale=scale)
-    if new_size:
-        try:
-            resized_image = resize_image(image, new_size)
-            rename_and_save_image(
-                new_size,
-                original_path,
-                path_to_result=result_path
-            )
-        except FileNotFoundError:
-            exit('incorrect directory path to save image')
-    else:
+    if not new_size:
         exit('no parameters for resizing')
+    try:
+        resized_image = resize_image(image, new_size)
+        rename_and_save_image(
+            new_size,
+            original_path,
+            path_to_result=result_path
+        )
+    except FileNotFoundError:
+        exit('incorrect directory path to save image')
