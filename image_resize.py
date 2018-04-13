@@ -64,17 +64,18 @@ def get_parsed_arguments():
 if __name__ == '__main__':
     args = get_parsed_arguments()
     original_path = args['img']
-    width = args['W']
-    height = args['H']
-    scale = args['S']
-    result_path = args['resp']
     if not original_path:
         exit('You did not enter file path as parameter')
     try:
         image = load_image(original_path)
     except(FileNotFoundError, PermissionError):
         exit('File not found, incorrect path')
-    new_size = get_new_size(image, width=width, height=height, scale=scale)
+    new_size = get_new_size(
+        image,
+        width=args['W'],
+        height=args['H'],
+        scale=args['S']
+    )
     if not new_size:
         exit('no parameters for resizing')
     try:
@@ -82,7 +83,7 @@ if __name__ == '__main__':
         rename_and_save_image(
             new_size,
             original_path,
-            path_to_result=result_path
+            path_to_result=args['resp']
         )
     except FileNotFoundError:
         exit('incorrect directory path to save image')
