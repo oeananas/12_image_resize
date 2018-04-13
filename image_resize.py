@@ -1,5 +1,6 @@
 from PIL import Image
 import argparse
+import os
 
 
 def load_image(path_to_original):
@@ -30,16 +31,27 @@ def resize_image(original_img, new_size):
     return original_img.resize(new_size, Image.ANTIALIAS)
 
 
-def rename_and_save_image(new_size, path_to_original, path_to_result=None):
-    orig_image_name = path_to_original.split('/')[-1]
-    orig_dir_path = '/'.join(path_to_original.split('/')[:-1])
+def get_original_image_name(path_to_original):
+    if '/' in path_to_original:
+        orig_image_name = path_to_original.split('/')[-1]
+    else:
+        orig_image_name = path_to_original
+    return orig_image_name
+
+
+def get_new_image_name(new_size, original_image_name):
     resized_image_name = '{name}__{width}x{height}.{exp}'.format(
-        name=orig_image_name.split('.')[0],
-        exp=orig_image_name.split('.')[1],
+        name=original_image_name.split('.')[0],
+        exp=original_image_name.split('.')[1],
         width=new_size[0],
         height=new_size[1],
     )
-    if path_to_result:
+    return resized_image_name
+
+
+def save_image(resized_image_name, path_to_original, path_to_result=None):
+    orig_dir_path = '/'.join(path_to_original.split('/')[:-1])
+    if os.path.isdir(path_to_result):
         return resized_image.save('{}/{}'.format(
             path_to_result,
             resized_image_name
@@ -64,26 +76,25 @@ def get_parsed_arguments():
 if __name__ == '__main__':
     args = get_parsed_arguments()
     original_path = args['img']
-    if not original_path:
-        exit('You did not enter file path as parameter')
+    width = args['W']
+    height = args['H']
+    scale = args['S']
+    result_path = args['resp']
+    if not os.path.isfile(original_path):
+        exit('You did not enter correct file path as parameter')
     try:
         image = load_image(original_path)
-    except(FileNotFoundError, PermissionError):
-        exit('File not found, incorrect path')
+    except ValueError:
+        exit('image file not found')
     new_size = get_new_size(
         image,
-        width=args['W'],
-        height=args['H'],
-        scale=args['S']
+        width=width,
+        height=height,
+        scale=scale
     )
     if not new_size:
         exit('no parameters for resizing')
-    try:
-        resized_image = resize_image(image, new_size)
-        rename_and_save_image(
-            new_size,
-            original_path,
-            path_to_result=args['resp']
-        )
-    except FileNotFoundError:
-        exit('incorrect directory path to save image')
+    resized_image = resize_image(image, new_size)
+    original_image_name = get_original_image_name(original_path)
+    new_image_name = get_new_image_name(new_size, original_image_name)
+    saved_image = save_image(new_image_name, original_path, result_path)
