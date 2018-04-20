@@ -25,38 +25,34 @@ def get_new_size_in_height(original_width, original_height, new_height):
     return new_size
 
 
-def get_valid_new_size(
+def get_new_size_in_correct_parameters(
         original_width,
         original_height,
         new_width=None,
         new_height=None,
         scale=None
 ):
-    if new_width and new_height and not scale:
-        valid_new_size = new_width, new_height
-        return valid_new_size
-    elif (new_width or new_height) and not scale:
-        if new_width:
-            valid_new_size = get_new_size_in_width(
-                original_width,
-                original_height,
-                new_width
-            )
-            return valid_new_size
-        elif new_height:
-            valid_new_size = get_new_size_in_height(
-                original_width,
-                original_height,
-                new_height
-            )
-            return valid_new_size
-    elif scale and not new_width and not new_height:
-        valid_new_size = get_new_size_in_scale(
+    if new_width and new_height:
+        new_size = new_width, new_height
+    elif new_width:
+        new_size = get_new_size_in_width(
+            original_width,
+            original_height,
+            new_width
+        )
+    elif new_height:
+        new_size = get_new_size_in_height(
+            original_width,
+            original_height,
+            new_height
+        )
+    elif scale:
+        new_size = get_new_size_in_scale(
             original_width,
             original_height,
             scale
         )
-        return valid_new_size
+    return new_size
 
 
 def resize_image(original_img, new_size):
@@ -108,6 +104,8 @@ if __name__ == '__main__':
     height = args.H
     scale = args.S
     result_path = args.path_to_save
+    if scale and (width or height):
+        exit('incorrect parameters to resize image')
     if result_path and not os.path.isdir(result_path):
         exit('incorrect directory to save')
     try:
@@ -115,19 +113,17 @@ if __name__ == '__main__':
     except IOError:
         exit('image cannot be found / image cannot be opened and identified')
     original_width, original_height = image.size
-    new_valid_size = get_valid_new_size(
+    new_size = get_new_size_in_correct_parameters(
         original_width,
         original_height,
         new_width=width,
         new_height=height,
         scale=scale
     )
-    if not new_valid_size:
-        exit('incorrect parameters to resize image')
-    resized_image = resize_image(image, new_valid_size)
+    resized_image = resize_image(image, new_size)
     original_image_name = os.path.basename(original_path)
     original_directory = os.path.dirname(original_path)
-    new_image_name = get_new_image_name(new_valid_size, original_image_name)
+    new_image_name = get_new_image_name(new_size, original_image_name)
     saved_image = save_image(
         resized_image,
         new_image_name,
